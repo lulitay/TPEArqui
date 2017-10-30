@@ -1,104 +1,91 @@
 #include <stdint.h>
 #include <string.h>
 #include <lib.h>
+#include <keyboard_driver.h>
 #include <moduleLoader.h>
 #include <naiveConsole.h>
+#include <systemcalls.h>
+#include <interrupts.h>
+#include <systemcalls.h>
 
-extern uint8_t text;
-extern uint8_t rodata;
-extern uint8_t data;
-extern uint8_t bss;
-extern uint8_t endOfKernelBinary;
-extern uint8_t endOfKernel;
 
-static const uint64_t PageSize = 0x1000;
+extern byte text;
+extern byte rodata;
+extern byte data;
+extern byte bss;
+extern byte endOfKernelBinary;
+extern byte endOfKernel;
 
-static void * const sampleCodeModuleAddress = (void*)0x400000;
-static void * const sampleDataModuleAddress = (void*)0x500000;
+static const qword PageSize = 0x1000;
+extern unsigned int read();
+
+static void * const shell = (void*)0x400000;
+
+
 
 typedef int (*EntryPoint)();
 
-
-void clearBSS(void * bssAddress, uint64_t bssSize)
-{
+void clearBSS(void * bssAddress, qword bssSize) {
 	memset(bssAddress, 0, bssSize);
 }
 
-void * getStackBase()
-{
+void * getStackBase() {
 	return (void*)(
-		(uint64_t)&endOfKernel
+		(qword)&endOfKernel
 		+ PageSize * 8				//The size of the stack itself, 32KiB
-		- sizeof(uint64_t)			//Begin at the top of the stack
+		- sizeof(qword)			//Begin at the top of the stack
 	);
 }
 
-void * initializeKernelBinary()
-{
-	char buffer[10];
+void * initializeKernelBinary() {
+	
 
-	ncPrint("[x64BareBones]");
-	ncNewline();
-
-	ncPrint("CPU Vendor:");
-	ncPrint(cpuVendor(buffer));
-	ncNewline();
-
-	ncPrint("[Loading modules]");
-	ncNewline();
 	void * moduleAddresses[] = {
-		sampleCodeModuleAddress,
-		sampleDataModuleAddress
+		shell
 	};
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
-	ncPrint("[Done]");
-	ncNewline();
-	ncNewline();
-
-	ncPrint("[Initializing kernel's binary]");
-	ncNewline();
-
+	
 	clearBSS(&bss, &endOfKernel - &bss);
 
-	ncPrint("  text: 0x");
-	ncPrintHex((uint64_t)&text);
-	ncNewline();
-	ncPrint("  rodata: 0x");
-	ncPrintHex((uint64_t)&rodata);
-	ncNewline();
-	ncPrint("  data: 0x");
-	ncPrintHex((uint64_t)&data);
-	ncNewline();
-	ncPrint("  bss: 0x");
-	ncPrintHex((uint64_t)&bss);
-	ncNewline();
-
-	ncPrint("[Done]");
-	ncNewline();
-	ncNewline();
 	return getStackBase();
 }
 
+
 int main()
 {	
-	ncPrint("[Kernel Main]");
-	ncNewline();
-	ncPrint("  Sample code module at 0x");
-	ncPrintHex((uint64_t)sampleCodeModuleAddress);
-	ncNewline();
-	ncPrint("  Calling the sample code module returned: ");
-	ncPrintHex(((EntryPoint)sampleCodeModuleAddress)());
-	ncNewline();
-	ncNewline();
+	_cli();
+	load_idt();
+	load_systemcalls();
+	_sti();
 	
-	ncPrint("  Sample data module at 0x");
-	ncPrintHex((uint64_t)sampleDataModuleAddress);
-	ncNewline();
-	ncPrint("  Sample data module contents: ");
-	ncPrint((char*)sampleDataModuleAddress);
-	ncNewline();
+	
+	ncClear();
+	menu();
+	char opcion;
+	while(1){
+		//ncClear();
+		//menu();
+		int i = 0;
+		
+		while((opcion = getBuffer()) == EOF || i<1) {
+			i++;
+		}
+		
+		switch(opcion) {
+			case '1':
+				ncPrint("hola");
+				//((EntryPoint)shell)();
+				break;
+	
+		}
+	}
 
-	ncPrint("[Finished]");
+	
+
 	return 0;
+}
+	
+void menu(){
+	ncPrint("1: Shell");
 }

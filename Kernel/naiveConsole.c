@@ -2,11 +2,12 @@
 
 static uint32_t uintToBase(uint64_t value, char * buffer, uint32_t base);
 
-static char buffer[64] = { '0' };
+static char buffer[64] = {'0'};
 static uint8_t * const video = (uint8_t*)0xB8000;
 static uint8_t * currentVideo = (uint8_t*)0xB8000;
 static const uint32_t width = 80;
 static const uint32_t height = 25 ;
+static char screen[26*160];
 
 void ncPrint(const char * string)
 {
@@ -14,6 +15,16 @@ void ncPrint(const char * string)
 
 	for (i = 0; string[i] != 0; i++)
 		ncPrintChar(string[i]);
+}
+
+void ncCopyscreen(char *buffer){
+	int y=0;
+
+	for (int x=0;x<width*height*2; x+=2)
+		if(screen[x+1]==0X6F)
+			buffer[y++]=screen[x];
+
+	buffer[y]=0;
 }
 
 void ncPrintChar(char character)

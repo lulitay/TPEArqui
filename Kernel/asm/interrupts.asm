@@ -12,75 +12,17 @@ GLOBAL _irq02Handler
 GLOBAL _irq03Handler
 GLOBAL _irq04Handler
 GLOBAL _irq05Handler
+GLOBAL _irq80Handler
 
 GLOBAL _exception0Handler
 
 EXTERN irqDispatcher
+EXTERN syscallHandler
 EXTERN exceptionDispatcher
 
+%include "./asm/macro.m"
+
 SECTION .text
-
-%macro pushState 0
-	push rax
-	push rbx
-	push rcx
-	push rdx
-	push rbp
-	push rdi
-	push rsi
-	push r8
-	push r9
-	push r10
-	push r11
-	push r12
-	push r13
-	push r14
-	push r15
-%endmacro
-
-%macro popState 0
-	pop r15
-	pop r14
-	pop r13
-	pop r12
-	pop r11
-	pop r10
-	pop r9
-	pop r8
-	pop rsi
-	pop rdi
-	pop rbp
-	pop rdx
-	pop rcx
-	pop rbx
-	pop rax
-%endmacro
-
-%macro irqHandlerMaster 1
-	pushState
-
-	mov rdi, %1 ; pasaje de parametro
-	call irqDispatcher
-
-	; signal pic EOI (End of Interrupt)
-	mov al, 20h
-	out 20h, al
-
-	popState
-	iretq
-%endmacro
-
-
-
-%macro exceptionHandler 1
-	pushState
-
-	mov rdi, %1 ; pasaje de parametro
-	call exceptionDispatcher
-
-	popState
-	iretq
-%endmacro
 
 
 _hlt:
@@ -99,19 +41,25 @@ _sti:
 
 picMasterMask:
 	push rbp
-    mov rbp, rsp
-    mov ax, di
-    out	21h,al
-    pop rbp
-    retn
+	mov rbp, rsp
+	
+	mov rax, rdi
+	out 21h, al
+	
+	mov rsp, rbp
+	pop rbp
+	ret
 
 picSlaveMask:
-	push    rbp
-    mov     rbp, rsp
-    mov     ax, di  ; ax = mascara de 16 bits
-    out	0A1h,al
-    pop     rbp
-    retn
+	push rbp
+	mov rbp, rsp
+	
+	mov rax, rdi
+	out 0A1h, al
+	
+	mov rsp, rbp
+	pop rbp
+	ret
 
 
 ;8254 Timer (Timer Tick)
@@ -148,6 +96,14 @@ haltcpu:
 	hlt
 	ret
 
+_irq80Handler:
+
+	call syscallHandler
+
+	mov al, 20h
+	out 20h, al
+
+	iretq
 
 
 SECTION .bss

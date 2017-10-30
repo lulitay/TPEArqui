@@ -1,5 +1,5 @@
 GLOBAL cpuVendor
-
+GLOBAL read
 section .text
 	
 cpuVendor:
@@ -24,4 +24,14 @@ cpuVendor:
 
 	mov rsp, rbp
 	pop rbp
+	ret
+
+
+read:
+	push rbp
+	mov rbp, rsp
+
+	in al,60h
+
+	leave
 	ret
