@@ -17,7 +17,7 @@ typedef struct {
 
 
 
-DESCR_INT * idt = (DESCR_INT *) 0;	// IDT de 255 entradas
+DESCR_INT * idt = (DESCR_INT *) 0x0;	// IDT de 255 entradas
 
 void load_idt() {
   _cli();
@@ -28,8 +28,8 @@ void load_idt() {
 
 
 	//Solo interrupcion timer tick habilitadas
-	picMasterMask(0xFE); 
-	picSlaveMask((char*)0xFF);
+	picMasterMask(0xF8); 
+	picSlaveMask((char*)0xEF);
         
 	_sti();
 }
@@ -39,7 +39,7 @@ void setup_IDT_entry (int index, uint64_t offset) {
   idt[index].offset_l = offset & 0xFFFF;
   idt[index].offset_m = (offset >> 16) & 0xFFFF;
   idt[index].offset_h = (offset >> 32) & 0xFFFFFFFF;
-  idt[index].access = ACS_INT;
+  idt[index].access = 0x8E;
   idt[index].cero = 0;
   idt[index].other_cero = (uint64_t) 0;
 }

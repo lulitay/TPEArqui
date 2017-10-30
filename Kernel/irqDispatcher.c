@@ -7,7 +7,7 @@ static void int_21();
 
 void irqDispatcher(uint64_t irq) {
 	
-	irq = 1; //para q ande, sino no me toma el teclado
+	
 	switch (irq) {
 		case 0:
 			int_20();

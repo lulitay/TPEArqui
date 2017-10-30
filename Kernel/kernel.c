@@ -62,7 +62,7 @@ int main()
 	
 	ncClear();
 	menu();
-	char opcion;
+	char opcion = '0';
 	while(1){
 		//ncClear();
 		//menu();

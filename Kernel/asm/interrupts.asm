@@ -5,6 +5,7 @@ GLOBAL picMasterMask
 GLOBAL picSlaveMask
 GLOBAL haltcpu
 GLOBAL _hlt
+GLOBAL read
 
 GLOBAL _irq00Handler
 GLOBAL _irq01Handler
@@ -41,26 +42,19 @@ _sti:
 
 picMasterMask:
 	push rbp
-	mov rbp, rsp
-	
-	mov rax, rdi
-	out 21h, al
-	
-	mov rsp, rbp
-	pop rbp
-	ret
+    mov rbp, rsp
+    mov ax, di
+    out	21h,al
+    pop rbp
+    retn
 
 picSlaveMask:
-	push rbp
-	mov rbp, rsp
-	
-	mov rax, rdi
-	out 0A1h, al
-	
-	mov rsp, rbp
-	pop rbp
-	ret
-
+	push    rbp
+    mov     rbp, rsp
+    mov     ax, di  ; ax = mascara de 16 bits
+    out	0A1h,al
+    pop     rbp
+    retn
 
 ;8254 Timer (Timer Tick)
 _irq00Handler:
@@ -104,6 +98,16 @@ _irq80Handler:
 	out 20h, al
 
 	iretq
+
+
+read:
+	push rbp
+	mov rbp, rsp
+
+	in al,60h
+
+	leave
+	ret
 
 
 SECTION .bss
