@@ -3,11 +3,9 @@
 #include <lib.h>
 #include <keyboard_driver.h>
 #include <moduleLoader.h>
-#include <naiveConsole.h>
-#include <systemcalls.h>
+#include <vsa_driver.h>
 #include <interrupts.h>
 #include <systemcalls.h>
-
 
 extern byte text;
 extern byte rodata;
@@ -17,20 +15,15 @@ extern byte endOfKernelBinary;
 extern byte endOfKernel;
 
 static const qword PageSize = 0x1000;
-static void * const shell = (void*)0x400000;
 extern unsigned int read();
-static void * entry = (void *) 0x3008; //usamos la segunda entrada de la tabla de pagina PDP
 
-
-//mapeamos el modulo en la direccion fisica
-//hacemos que la entrada de la tabla PDP apunte a la direccion fisica
-void map(void * fisica, void * module){
-	memcpy(fisica,module,10000);
-	*((uint64_t *)entry) = fisica;
-}
-
+static void * const shell = (void*)0x400000;
+static void * const getTime = (void*)0x500000;
+static void * const linearGraph = (void*)0x700000;
+static void * const parabolicGraph = (void*)0x900000;
 
 typedef int (*EntryPoint)();
+
 
 void clearBSS(void * bssAddress, qword bssSize) {
 	memset(bssAddress, 0, bssSize);
@@ -48,7 +41,10 @@ void * initializeKernelBinary() {
 	
 
 	void * moduleAddresses[] = {
-		shell
+		shell,
+		getTime,
+		linearGraph,
+		parabolicGraph,
 	};
 
 	loadModules(&endOfKernelBinary, moduleAddresses);
@@ -64,75 +60,59 @@ int main()
 	_cli();
 	load_idt();
 	load_systemcalls();
+	start_video_mode();
 	_sti();
 	
 	
-	ncClear();
-	menu();
+	
 	char opcion = '0';
-	ncPrint("Seleccionar modulo:");ncNewline();
-;
-	ncPrint("1: Hello World");ncNewline();
-	ncPrint("2: Shell");ncNewline();
-	ncPrint("3: Display time");ncNewline();
-	ncPrint("4: Graph");ncNewline();
-	ncPrint("5: Verify exceptions");ncNewline();
+	
 	while(1){
-		//ncClear();
-		//menu();
+		clear_screen();
+		menu();
 		int i = 0;
 		
-		while((opcion = getBuffer()) == EOF || i<1) {
+		while((opcion = get_buffer()) == EOF || i<1) {
 			i++;
 		}
 
-
+		
 		
 		switch(opcion) {
 			case '1':
-				ncPrint("Hello World ");
-				ncNewline();
-				//((EntryPoint)shell)();
+				((EntryPoint)shell)();
 				break;
+
 			case '2':
-				ncClear();
-				ncNewline();
-				ncNewline();
-				ncNewline();
-				map(0x1000000,shell);	
-				((EntryPoint)*((uint64_t *)entry))();;
-				ncPrint("Shell");
-				ncNewline();
-				ncPrint("--------");
+				((EntryPoint)getTime)();
 				break;
+
 			case '3':
-				//nueva ventana (?
-				ncPrint("La hora actual es ");
-				ncPrintTime();
-				ncNewline();
+				((EntryPoint)linearGraph)();
 				break;
+
 			case '4':
-				//nueva ventana
-				ncPrint("Seleccione tipo de funcion a graficar ");ncNewline();
-				ncPrint("1: f(x) = ax + b ");ncNewline();
-				ncPrint("2: f(x) = ax^2 + bx + c ");ncNewline();
-				//despues habria q tomar los valores para a b y c
-				ncNewline();
+				((EntryPoint)parabolicGraph)();
 				break;
-			case '5':
-				ncPrint("Mostrando informacion de excepciones ");ncNewline();
-				ncNewline();
-				break;
+		
 
 	
 		}
 	}
 
-	
 
 	return 0;
 }
-	
+
+/* Creo que el menu no deberia ir aca, quiza en video_driver */
 void menu(){
-	ncPrint(" ");
+	clear_screen();
+	print_string("1: SHELL");
+	nextLine();
+	print_string("2: TIME");
+	nextLine();
+	print_string("3: LINEAR GRAPH");
+	nextLine();
+	print_string("4: PARABOLIC GRAPH");
+	nextLine();
 }

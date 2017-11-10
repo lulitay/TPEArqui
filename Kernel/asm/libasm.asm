@@ -1,4 +1,5 @@
 GLOBAL cpuVendor
+GLOBAL _hlt
 
 section .text
 	
@@ -26,4 +27,11 @@ cpuVendor:
 	pop rbp
 	ret
 
+
+; -----------------------------------------------------------------------------
+;	Halts the CPU until a new interruption is set.
+; -----------------------------------------------------------------------------
+_hlt:
+	hlt
+	ret
 

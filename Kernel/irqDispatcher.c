@@ -7,7 +7,7 @@ static void int_21();
 
 void irqDispatcher(uint64_t irq) {
 	
-	
+	//Cambiar el switch por un arreglo de punteros a funcion!
 	switch (irq) {
 		case 0:
 			int_20();
@@ -19,7 +19,7 @@ void irqDispatcher(uint64_t irq) {
 	return;
 }
 
-void int_20() {
+void int_20(){
 	timer_handler();
 }
 
@@ -27,5 +27,3 @@ void int_21(){
 	keyboard_handler();
 }
 
-//Puse la nro 21 pero puede ser cualquiera porque en la idt desde la 20 son reservados
-//Para las excepciones pedidas hay q fijarse en internet q numero de la idt usar

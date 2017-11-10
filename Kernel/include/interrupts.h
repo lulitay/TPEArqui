@@ -13,6 +13,8 @@ void _irq05Handler(void);
 void _irq80Handler(void);
 
 void _exception0Handler(void);
+void _exception4Handler(void);
+void _exception6Handler(void);
 
 void setup_IDT_entry(int index, qword handler);
 

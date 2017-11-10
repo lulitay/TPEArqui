@@ -1,3 +1,8 @@
+
+; -----------------------------------------------------------------------------
+;	This macro preserves the value of all registers
+; -----------------------------------------------------------------------------
+
 %macro pushState 0
 	push rax
 	push rbx
@@ -15,6 +20,11 @@
 	push r14
 	push r15
 %endmacro
+
+; -----------------------------------------------------------------------------
+;	This macro restores the value of all registers
+; -----------------------------------------------------------------------------
+
 
 %macro popState 0
 	pop r15
@@ -52,11 +62,10 @@
 
 
 %macro exceptionHandler 1
-	pushState
-
-	mov rdi, %1 ; pasaje de parametro
+	mov rdi, %1 
 	call exceptionDispatcher
-
-	popState
+	
+	mov qword [rsp],0x400000
 	iretq
 %endmacro
+

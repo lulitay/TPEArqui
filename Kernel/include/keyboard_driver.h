@@ -4,8 +4,10 @@
 
 
 void keyboard_handler();
-byte getBuffer();
-void readAllBuffer(char* buff, int size);
-void addToBuffer(char * buffercopy);
+void update_buffer(unsigned char key);
+char get_buffer();
+void read_buffer(char* buff, int size);
+void add_buffer(char * buffercopy);
+
 
 #endif
